@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+/* NetForge — Network Theme Tokens */
+:root {
+  --forge-dark: #0f1a1a;
+  --forge-surface: #132626;
+  --forge-card: #1a3333;
+  --forge-ember: #10b981;
+  --forge-ember-glow: #34d399;
+  --forge-steel: #94a3b8;
+  --forge-text: #e2e8f0;
+  --forge-muted: #64748b;
+  --forge-success: #22c55e;
+  --forge-warning: #eab308;
+  --forge-danger: #ef4444;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: var(--forge-dark);
+  color: var(--forge-text);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, a, [role="button"] {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#root {
+  min-height: 100svh;
+  max-width: 480px;
+  margin: 0 auto;
+}
