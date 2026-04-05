@@ -4,7 +4,7 @@ import {
   ArrowLeft,
   Router,
   Target,
-  Infinity,
+  Infinity as InfinityIcon,
   CreditCard,
   Lock,
   CheckCircle,
@@ -44,7 +44,7 @@ export default function UpgradeScreen() {
       text: "Advanced routing, wireless, security, and troubleshooting scenarios",
     },
     {
-      icon: Infinity,
+      icon: InfinityIcon,
       text: "All future labs included as they're released",
     },
     {

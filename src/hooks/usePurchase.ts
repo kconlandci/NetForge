@@ -49,14 +49,15 @@ export function usePurchase(): UsePurchase {
 
       return { success: false, error: "unknown" };
     } catch (err: unknown) {
-      const error = err as { code?: string; userCancelled?: boolean };
-
-      if (error.userCancelled || error.code === "1") {
-        return { success: false, error: "cancelled" };
-      }
-      if (error.code === "7") {
-        await setPremiumStatus(true);
-        return { success: true, error: "already_owned" };
+      if (err != null && typeof err === "object") {
+        const error = err as Record<string, unknown>;
+        if (error.userCancelled === true || error.code === "1") {
+          return { success: false, error: "cancelled" };
+        }
+        if (error.code === "7") {
+          await setPremiumStatus(true);
+          return { success: true, error: "already_owned" };
+        }
       }
 
       console.error("[NetForge] Purchase failed:", err);
