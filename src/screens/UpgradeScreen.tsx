@@ -11,6 +11,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { labCatalog } from "../data/catalog";
+import { useAuth } from "../contexts/AuthContext";
 import { usePurchase } from "../hooks/usePurchase";
 import { usePremiumStatus } from "../hooks/usePremiumStatus";
 
@@ -24,8 +25,9 @@ function goBack(navigate: ReturnType<typeof useNavigate>) {
 
 export default function UpgradeScreen() {
   const navigate = useNavigate();
-  const { purchase, restore, isPurchasing, isRestoring } = usePurchase();
-  const { isPremium, refreshPremiumStatus } = usePremiumStatus();
+  const { uid } = useAuth();
+  const { purchase, restore, isPurchasing, isRestoring } = usePurchase(uid);
+  const { isPremium, refreshPremiumStatus } = usePremiumStatus(uid);
   const [purchaseSuccess, setPurchaseSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
