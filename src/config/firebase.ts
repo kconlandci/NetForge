@@ -1,6 +1,16 @@
 // ============================================================
 // NetForge — Firebase Configuration
 // JS SDK with explicit browserLocalPersistence for WebView
+// Wiring pass (2026-10-19): structure follows CloudForge's
+// Phase 1 config (Auth + Firestore with a persistent local
+// cache, exported as `db`), which NetForge's sync service
+// (src/services/sync.ts) consumes.
+//
+// Values below are NetForge's own, from its Firebase project
+// "netforge-805d8" (created 2026-10-18; Anonymous Auth enabled,
+// Firestore created in nam5, Spark plan). The web app's SDK
+// config is used here, matching the family convention. Every
+// value is project-specific — do NOT copy a sibling's values.
 // ============================================================
 
 import { initializeApp } from "firebase/app";
@@ -9,17 +19,22 @@ import {
   browserLocalPersistence,
   type Auth,
 } from "firebase/auth";
+import {
+  initializeFirestore,
+  persistentLocalCache,
+  type Firestore,
+} from "firebase/firestore";
 
 // IMPORTANT: These are client-side Firebase config values.
 // They are NOT secrets — they identify the project to Firebase.
 // Security is enforced by Firebase Security Rules, not by hiding these.
 const firebaseConfig = {
-  apiKey: "REPLACE_WITH_YOUR_FIREBASE_API_KEY",
-  authDomain: "netforge-xxxxx.firebaseapp.com",
-  projectId: "netforge-xxxxx",
-  storageBucket: "netforge-xxxxx.firebasestorage.app",
-  messagingSenderId: "000000000000",
-  appId: "1:000000000000:web:xxxxxxxxxxxx",
+  apiKey: "AIzaSyDPwBtprwzIV64Wsy2O1BBUZitDODiMMg8",
+  authDomain: "netforge-805d8.firebaseapp.com",
+  projectId: "netforge-805d8",
+  storageBucket: "netforge-805d8.firebasestorage.app",
+  messagingSenderId: "654704572424",
+  appId: "1:654704572424:web:3293bebbc4c97d7604b9bd",
 };
 
 const app = initializeApp(firebaseConfig);
@@ -33,4 +48,13 @@ const auth: Auth = initializeAuth(app, {
   persistence: browserLocalPersistence,
 });
 
-export { app, auth };
+// Firestore with a persistent local cache: reads stay fast and writes
+// queue automatically while offline, syncing when connectivity returns.
+// Must be initialized here (before any other Firestore usage).
+// Consumed by the Phase 1 sync service (users/{uid} progress doc +
+// users/{uid}/events analytics), same as CloudForge.
+const db: Firestore = initializeFirestore(app, {
+  localCache: persistentLocalCache(),
+});
+
+export { app, auth, db };
