@@ -1,6 +1,6 @@
 // ============================================================
 // NetForge — Purchase Hook
-// Handles purchasing the Founders Pack via RevenueCat
+// Handles Forge Labs Pro purchases via RevenueCat
 // ============================================================
 
 import { useState, useCallback } from "react";

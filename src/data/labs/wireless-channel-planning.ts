@@ -3,20 +3,21 @@ import type { LabManifest } from "../../types/manifest";
 const lab: LabManifest = {
   schemaVersion: "1.1",
   id: "wireless-channel-planning",
-  version: 1,
-  title: "Configure Non-Overlapping Wireless Channels",
+  version: 2,
+  title: "The AI's Channel Plan",
   tier: "beginner",
   track: "wireless-networking",
   difficulty: "easy",
-  accessLevel: "free",
-  tags: ["wifi", "channels", "interference", "2.4ghz", "5ghz", "planning"],
+  accessLevel: "premium",
+  tags: ["wifi", "channels", "interference", "2.4ghz", "5ghz", "ai-review", "planning"],
   description:
-    "Plan and configure non-overlapping channel assignments for access points to minimize co-channel interference across 2.4 GHz and 5 GHz bands.",
+    "An AI planning tool generated the channel plan for a high-density conference venue and declared it optimized for maximum throughput. Check its assignments against RF reality — overlapping channels, one 5 GHz channel at 160 MHz, and an illegal DFS setting — and correct the plan.",
   estimatedMinutes: 10,
   learningObjectives: [
-    "Identify the three non-overlapping channels in the 2.4 GHz band",
-    "Configure channel width and assignment to avoid co-channel interference",
-    "Apply correct channel plans for multi-AP deployments",
+    "Verify an AI-generated channel plan against the non-overlapping channel rules for 2.4 GHz and 5 GHz",
+    "Recognize why maximum channel width (40 MHz in 2.4 GHz, 160 MHz in 5 GHz) destroys channel reuse in dense deployments",
+    "Apply correct channel reuse patterns across adjacent and vertically stacked APs",
+    "Identify regulatory requirements (DFS radar detection) that a generated plan may casually disable",
   ],
   sortOrder: 301,
   status: "published",
@@ -25,43 +26,43 @@ const lab: LabManifest = {
   scenarios: [
     {
       type: "toggle-config",
-      id: "channel-24ghz-floor",
-      title: "2.4 GHz Floor Plan Channel Assignment",
+      id: "ai-channel-24ghz",
+      title: "The AI's 2.4 GHz Plan — Three APs, Zero Separation",
       description:
-        "Three APs are deployed on the same office floor in a triangular layout. All are currently set to Auto channel on 2.4 GHz, resulting in co-channel interference. Assign non-overlapping channels.",
-      targetSystem: "Cisco WLC 9800 > Wireless > 2.4 GHz Radio Configuration",
+        "The AI planned 2.4 GHz for three APs covering the venue's main hall in a triangular layout. Its cover note says the channels are 'evenly spaced for balanced coverage.' Check the spacing yourself and fix the assignments.",
+      targetSystem: "Cisco WLC 9800 > Wireless > 2.4 GHz Radio Configuration — Main Hall",
       items: [
         {
           id: "ap1-channel",
-          label: "AP-LOBBY (Channel)",
-          detail: "Lobby area AP, nearest to AP-CONF",
-          currentState: "Auto",
+          label: "AP-HALL-A (Channel)",
+          detail: "West end of the hall, nearest to AP-HALL-B. AI assignment: channel 1",
+          currentState: "1",
           correctState: "1",
           states: ["Auto", "1", "6", "11"],
           rationaleId: "rat-ch1",
         },
         {
           id: "ap2-channel",
-          label: "AP-CONF (Channel)",
-          detail: "Conference room AP, between AP-LOBBY and AP-OFFICE",
-          currentState: "Auto",
+          label: "AP-HALL-B (Channel)",
+          detail: "Center of the hall, between the other two APs. AI assignment: channel 4 — which overlaps channels 1 and 6 on both sides",
+          currentState: "4",
           correctState: "6",
-          states: ["Auto", "1", "6", "11"],
+          states: ["4", "1", "6", "11"],
           rationaleId: "rat-ch6",
         },
         {
           id: "ap3-channel",
-          label: "AP-OFFICE (Channel)",
-          detail: "Open office AP, nearest to AP-CONF",
-          currentState: "Auto",
+          label: "AP-HALL-C (Channel)",
+          detail: "East end of the hall, nearest to AP-HALL-B. AI assignment: channel 9 — overlapping the upper half of the band",
+          currentState: "9",
           correctState: "11",
-          states: ["Auto", "1", "6", "11"],
+          states: ["9", "1", "6", "11"],
           rationaleId: "rat-ch11",
         },
         {
           id: "ap1-width",
-          label: "AP-LOBBY (Channel Width)",
-          detail: "2.4 GHz channel width setting",
+          label: "AP-HALL-A (Channel Width)",
+          detail: "AI set 40 MHz 'for higher throughput' in a three-AP hall",
           currentState: "40 MHz",
           correctState: "20 MHz",
           states: ["20 MHz", "40 MHz"],
@@ -69,8 +70,8 @@ const lab: LabManifest = {
         },
         {
           id: "ap2-width",
-          label: "AP-CONF (Channel Width)",
-          detail: "2.4 GHz channel width setting",
+          label: "AP-HALL-B (Channel Width)",
+          detail: "AI set 40 MHz to match its plan-wide 'performance mode'",
           currentState: "40 MHz",
           correctState: "20 MHz",
           states: ["20 MHz", "40 MHz"],
@@ -80,42 +81,42 @@ const lab: LabManifest = {
       rationales: [
         {
           id: "rat-ch1",
-          text: "Channel 1 (2.412 GHz) is one of the three non-overlapping 2.4 GHz channels, assigned to the first AP in the plan.",
+          text: "Channel 1 (2.412 GHz) is a correct assignment — one of the three non-overlapping 2.4 GHz channels. Even a flawed plan gets individual values right; the review has to check each one.",
         },
         {
           id: "rat-ch6",
-          text: "Channel 6 (2.437 GHz) is separated by 25 MHz from channel 1, providing a non-overlapping assignment for the adjacent AP.",
+          text: "Channel 4 is the classic generated-plan error: it LOOKS evenly spaced between 1 and 9, but 2.4 GHz channels are only 5 MHz apart while each signal is ~20 MHz wide, so channel 4 overlaps both neighbors. Only channels separated by 25 MHz — the 1, 6, 11 set — are truly non-overlapping. Channel 6 is the correct middle assignment.",
         },
         {
           id: "rat-ch11",
-          text: "Channel 11 (2.462 GHz) completes the non-overlapping trio (1, 6, 11), ensuring no co-channel interference among the three APs.",
+          text: "Channel 9 overlaps channel 6 (and would sit on top of the corrected plan). Channel 11 completes the non-overlapping trio.",
         },
         {
           id: "rat-width",
-          text: "In 2.4 GHz, 40 MHz channels overlap with adjacent channels and should only be used in isolated environments. 20 MHz is the standard for multi-AP deployments.",
+          text: "A 40 MHz channel in 2.4 GHz consumes two of the three usable channel positions, guaranteeing overlap in any multi-AP hall. 'Throughput mode' settings from a generator ignore that the band only has room for one 40 MHz channel. 20 MHz is the standard for multi-AP 2.4 GHz.",
         },
       ],
       feedback: {
         perfect:
-          "Perfect! You correctly assigned channels 1, 6, and 11 with 20 MHz width -- the textbook non-overlapping plan for 2.4 GHz multi-AP deployments.",
+          "Correct — you caught the arithmetic the AI's 'evenly spaced' claim was hiding. Channels 1/4/9 look balanced and overlap badly; 1/6/11 at 20 MHz is the plan that works. Generated RF plans fail on physics, not intentions.",
         partial:
-          "Some settings are correct but check that all three APs use different non-overlapping channels (1, 6, 11) and that channel width is set to 20 MHz.",
+          "Some assignments are right, but verify the whole set: only 1, 6, and 11 are non-overlapping in 2.4 GHz, and 40 MHz width cannot coexist with a three-AP channel reuse plan in this band.",
         wrong:
-          "In the 2.4 GHz band, only channels 1, 6, and 11 are non-overlapping. Using Auto or 40 MHz width in a multi-AP environment causes significant co-channel interference.",
+          "Even spacing is not non-overlapping. Channels are 5 MHz apart and signals are ~20 MHz wide, so 1/4/9 interfere with each other continuously — and at 40 MHz width there is effectively one usable channel in the whole band. The AI optimized for a phrase ('balanced, high-throughput'), not for the spectrum.",
       },
     },
     {
       type: "toggle-config",
-      id: "channel-5ghz-enterprise",
-      title: "5 GHz Enterprise Channel Plan",
+      id: "ai-channel-5ghz",
+      title: "The AI's 5 GHz Plan — One Channel, Maximum Width",
       description:
-        "Four APs cover a two-story building. Configure 5 GHz channels using UNII-1 and UNII-3 bands with appropriate channel widths for enterprise throughput.",
-      targetSystem: "Aruba Central > WLAN > Radio Configuration > 5 GHz",
+        "For the venue's four 5 GHz APs (two floors, stacked pairs), the AI assigned every AP channel 36 at 160 MHz width, explaining that 'a single high-performance channel simplifies roaming and maximizes speed.' Correct the plan.",
+      targetSystem: "Aruba Central > WLAN > Radio Configuration > 5 GHz — Venue Floors 1-2",
       items: [
         {
           id: "ap-floor1a",
           label: "AP-F1-NORTH (5 GHz Channel)",
-          detail: "First floor north wing",
+          detail: "First floor north. AI assignment: 36",
           currentState: "36",
           correctState: "36",
           states: ["36", "40", "44", "149", "153", "157"],
@@ -124,7 +125,7 @@ const lab: LabManifest = {
         {
           id: "ap-floor1b",
           label: "AP-F1-SOUTH (5 GHz Channel)",
-          detail: "First floor south wing",
+          detail: "First floor south, same floor as AP-F1-NORTH. AI assignment: 36 — the same channel as its neighbor",
           currentState: "36",
           correctState: "149",
           states: ["36", "40", "44", "149", "153", "157"],
@@ -133,7 +134,7 @@ const lab: LabManifest = {
         {
           id: "ap-floor2a",
           label: "AP-F2-NORTH (5 GHz Channel)",
-          detail: "Second floor north wing, directly above AP-F1-NORTH",
+          detail: "Second floor north, directly above AP-F1-NORTH. AI assignment: 36 — through the floor slab from the AP below",
           currentState: "36",
           correctState: "153",
           states: ["36", "40", "44", "149", "153", "157"],
@@ -142,7 +143,7 @@ const lab: LabManifest = {
         {
           id: "ap-floor2b",
           label: "AP-F2-SOUTH (5 GHz Channel)",
-          detail: "Second floor south wing, directly above AP-F1-SOUTH",
+          detail: "Second floor south, above AP-F1-SOUTH. AI assignment: 36",
           currentState: "36",
           correctState: "44",
           states: ["36", "40", "44", "149", "153", "157"],
@@ -151,8 +152,8 @@ const lab: LabManifest = {
         {
           id: "channel-width-all",
           label: "Global Channel Width (5 GHz)",
-          detail: "Applied to all 5 GHz radios",
-          currentState: "20 MHz",
+          detail: "AI set 160 MHz plan-wide 'for maximum per-client speed' in a venue that needs channel reuse",
+          currentState: "160 MHz",
           correctState: "40 MHz",
           states: ["20 MHz", "40 MHz", "80 MHz", "160 MHz"],
           rationaleId: "rat-5width",
@@ -161,47 +162,47 @@ const lab: LabManifest = {
       rationales: [
         {
           id: "rat-unii1",
-          text: "Channel 36 in UNII-1 band provides reliable indoor coverage without DFS requirements.",
+          text: "Channel 36 in UNII-1 is a valid anchor assignment with no DFS requirements.",
         },
         {
           id: "rat-unii3",
-          text: "Channel 149 in UNII-3 is far from channel 36, eliminating any co-channel interference between horizontal neighbors.",
+          text: "Channel 149 (UNII-3) puts the same-floor neighbor as far from channel 36 as the band allows. Four APs blasting one channel means four cells' worth of clients contending on a single collision domain — the opposite of the capacity a venue deploys multiple APs to create.",
         },
         {
           id: "rat-vertical",
-          text: "APs stacked vertically must use different channels. Channel 153 avoids overlap with both ch 36 (below) and ch 149 (adjacent).",
+          text: "RF passes through floor slabs. A stacked AP on the same channel interferes with the AP below it almost as if they were in the same room. Channel 153 separates it from both the AP below (36) and the one beside it (149).",
         },
         {
           id: "rat-diagonal",
-          text: "Channel 44 provides separation from the AP below (ch 149) and the AP beside it (ch 153), completing the 4-channel reuse pattern.",
+          text: "Channel 44 completes a four-channel reuse pattern (36/149/153/44) where no adjacent or stacked pair shares a channel.",
         },
         {
           id: "rat-5width",
-          text: "40 MHz channels in 5 GHz balance throughput and channel reuse. 80 MHz or 160 MHz would limit the number of non-overlapping channels available for this 4-AP deployment.",
+          text: "At 160 MHz there are only two channels in the entire 5 GHz band — a four-AP reuse plan is arithmetically impossible, and high-density venues trade per-client peak speed for many simultaneous clients. 40 MHz gives this layout 4+ usable channels with strong per-client throughput. The AI optimized one client's speedtest at the cost of the venue's capacity.",
         },
       ],
       feedback: {
         perfect:
-          "Excellent! Your channel plan provides maximum separation between all adjacent and vertically stacked APs while using 40 MHz width for good throughput.",
+          "Excellent. You replaced a one-channel, max-width fantasy with a real reuse pattern — 36/149/153/44 at 40 MHz — where every adjacent and stacked pair is separated. Roaming is a controller feature, not a reason to collapse four cells into one collision domain.",
         partial:
-          "Your plan has some channel separation but ensure vertically stacked APs also use different channels -- RF leaks between floors.",
+          "Better, but check the stacked pairs as well as the floor plans — RF ignores ceilings — and do the width arithmetic: 160 MHz leaves only two channels in the band, so no four-AP plan can reuse it.",
         wrong:
-          "All APs on the same channel causes severe co-channel interference. Use a reuse pattern spreading across UNII-1 and UNII-3 bands.",
+          "One channel at 160 MHz for four APs means every client in the venue shares a single contention domain, and the width choice makes separation impossible even if you wanted it. Dense venues win on reuse: more channels, moderate widths, no adjacent or vertical pair sharing.",
       },
     },
     {
       type: "toggle-config",
-      id: "channel-dfs-config",
-      title: "DFS Channel Configuration",
+      id: "ai-channel-dfs",
+      title: "The AI Disabled Radar Detection 'to Avoid Interruptions'",
       description:
-        "The network needs more 5 GHz channels due to high AP density. Configure DFS (Dynamic Frequency Selection) channels while ensuring radar detection is properly enabled for regulatory compliance.",
-      targetSystem: "Meraki Dashboard > Wireless > Radio Settings",
+        "To add capacity, the AI's plan enables DFS channels (UNII-2 / UNII-2 Extended). Buried in its settings, it also disables radar detection and channel evacuation, noting that 'radar events during venue hours would disrupt service.' Review the DFS configuration.",
+      targetSystem: "Meraki Dashboard > Wireless > Radio Settings — Venue DFS Profile",
       items: [
         {
           id: "dfs-enable",
           label: "DFS Channel Usage",
-          detail: "Allow use of UNII-2 / UNII-2 Extended channels",
-          currentState: "Disabled",
+          detail: "Allow use of UNII-2 / UNII-2 Extended channels for extra capacity",
+          currentState: "Enabled",
           correctState: "Enabled",
           states: ["Disabled", "Enabled"],
           rationaleId: "rat-dfs-on",
@@ -209,8 +210,8 @@ const lab: LabManifest = {
         {
           id: "radar-detect",
           label: "Radar Detection",
-          detail: "802.11h radar detection and channel evacuation",
-          currentState: "Enabled",
+          detail: "802.11h radar detection and channel evacuation. The AI disabled it: 'avoids service-disrupting channel changes during events'",
+          currentState: "Disabled",
           correctState: "Enabled",
           states: ["Disabled", "Enabled"],
           rationaleId: "rat-radar",
@@ -218,7 +219,7 @@ const lab: LabManifest = {
         {
           id: "dfs-recovery",
           label: "DFS Recovery Time",
-          detail: "Time before returning to DFS channel after radar event",
+          detail: "Time before returning to a DFS channel after a radar event. The AI set 'Never' — abandoning DFS capacity after any event",
           currentState: "Never",
           correctState: "30 minutes",
           states: ["Never", "10 minutes", "30 minutes", "60 minutes"],
@@ -227,7 +228,7 @@ const lab: LabManifest = {
         {
           id: "backup-channel",
           label: "DFS Fallback Channel",
-          detail: "Non-DFS channel to use during radar events",
+          detail: "Non-DFS channel APs move clients to during a radar event. The AI left it unset: 'not needed once radar handling is off'",
           currentState: "None",
           correctState: "36",
           states: ["None", "36", "149", "Auto"],
@@ -237,35 +238,35 @@ const lab: LabManifest = {
       rationales: [
         {
           id: "rat-dfs-on",
-          text: "Enabling DFS channels (52-144) adds up to 15 additional non-overlapping channels in 5 GHz, critical for high-density deployments.",
+          text: "Enabling DFS channels is the right call — it adds up to 15 non-overlapping 5 GHz channels, which a high-density venue genuinely needs.",
         },
         {
           id: "rat-radar",
-          text: "Radar detection is mandatory per FCC/ETSI regulations. APs must vacate DFS channels within 10 seconds of detecting radar signals.",
+          text: "Radar detection on DFS channels is not a feature preference; it is the legal condition of using the band. APs must detect radar and vacate within seconds (FCC/ETSI rules) because these frequencies are shared with weather and military radar. A generated plan that disables it 'to avoid interruptions' is proposing a regulatory violation as an optimization — and no availability argument survives that.",
         },
         {
           id: "rat-recovery",
-          text: "30 minutes is the standard non-occupancy period required by regulation before an AP can return to a DFS channel after a radar event.",
+          text: "Regulation sets the non-occupancy period: 30 minutes before an AP may return to a channel where radar was detected. 'Never' is compliant but throws away the capacity the plan enabled DFS to get; the standard value is 30 minutes.",
         },
         {
           id: "rat-fallback",
-          text: "A designated non-DFS fallback channel ensures clients maintain connectivity during radar-triggered channel changes.",
+          text: "A designated non-DFS fallback channel is what makes radar evacuation a brief channel change instead of a venue-wide outage. The AI removed the fallback precisely because it had disabled the mechanism that needs it — errors in generated plans travel in packs like this.",
         },
       ],
       feedback: {
         perfect:
-          "Perfect configuration! DFS channels are enabled with proper radar detection, regulatory recovery time, and a non-DFS fallback channel.",
+          "Correct. DFS capacity: yes. Radar detection off: never — it is the legal price of the band, and a smoother event is not a defense the regulator accepts. With detection on, the 30-minute recovery and a named fallback channel turn evacuations into minor events.",
         partial:
-          "DFS is partially configured. Ensure radar detection stays enabled (it is legally required) and set the 30-minute regulatory recovery timer.",
+          "Mostly right — the decisive item is radar detection. It must be Enabled: operating on DFS channels without it violates FCC/ETSI rules, full stop. With detection restored, set the 30-minute regulatory recovery and give APs a fallback channel.",
         wrong:
-          "DFS channels require radar detection to be enabled by law. Without proper fallback and recovery settings, clients will lose connectivity during radar events.",
+          "The AI treated a legal requirement as an optional convenience. DFS spectrum is borrowed from radar services; detection and evacuation are the terms of the loan. Any generated plan that disables a compliance control 'for performance' must be rejected on that item alone, however good the rest looks.",
       },
     },
   ],
   hints: [
-    "In the 2.4 GHz band, only channels 1, 6, and 11 are non-overlapping in North America (25 MHz separation).",
-    "When planning multi-floor deployments, ensure vertically adjacent APs also use different channels -- RF passes through ceilings and floors.",
-    "DFS channels (52-144) require radar detection and a 30-minute non-occupancy period per FCC regulations.",
+    "In the 2.4 GHz band, only channels 1, 6, and 11 are non-overlapping in North America (25 MHz separation). 'Evenly spaced' assignments like 1/4/9 are the tell of a plan nobody checked against the physics.",
+    "Channel width is a reuse budget: 160 MHz leaves two channels in 5 GHz, 40 MHz leaves many. Dense venues need reuse more than any single client needs a wider channel.",
+    "DFS channels (52-144) require radar detection and a 30-minute non-occupancy period per FCC regulations. A plan that disables radar detection is not an optimization — it is a violation.",
   ],
   scoring: {
     maxScore: 100,
@@ -274,14 +275,14 @@ const lab: LabManifest = {
     passingThresholds: { pass: 80, partial: 50 },
   },
   careerInsight:
-    "Channel planning is a daily task for wireless engineers. Misconfigured channels are the #1 cause of poor Wi-Fi performance in enterprise deployments, making this a core CompTIA Network+ and CWNA skill.",
+    "Wireless design is where AI planning tools meet physics and regulation, and both are unforgiving of confident approximations. The engineers who can audit a generated plan — channel arithmetic, width budgets, vertical separation, DFS law — will be the ones whose venues work on the night 5,000 attendees all open their phones at once.",
   toolRelevance: [
     "Ekahau Pro / Sidekick",
     "Cisco WLC / Aruba Central / Meraki Dashboard",
     "Wi-Fi scanner (inSSIDer, WiFi Analyzer)",
   ],
   createdAt: "2026-03-28",
-  updatedAt: "2026-03-28",
+  updatedAt: "2026-10-18",
 };
 
 export default lab;

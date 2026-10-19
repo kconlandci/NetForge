@@ -39,7 +39,7 @@ export default function UpgradeScreen() {
   const valueProps = [
     {
       icon: Router,
-      text: `${premiumCount} premium networking simulations — yours forever`,
+      text: `${premiumCount} premium networking simulations, all unlocked`,
     },
     {
       icon: Target,
@@ -47,11 +47,11 @@ export default function UpgradeScreen() {
     },
     {
       icon: InfinityIcon,
-      text: "All future labs included as they're released",
+      text: "New labs included as they're released",
     },
     {
       icon: CreditCard,
-      text: "No subscription — one-time investment in your career",
+      text: "Monthly or yearly plans — cancel anytime",
     },
   ];
 
@@ -100,14 +100,14 @@ export default function UpgradeScreen() {
               <ArrowLeft size={20} className="text-slate-400" />
             </button>
             <h1 className="text-sm font-semibold text-white">
-              Founding Member Access
+              Forge Labs Pro
             </h1>
           </div>
         </div>
         <div className="max-w-lg mx-auto p-4 pt-16 text-center">
           <CheckCircle size={48} className="text-green-400 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-white mb-2">
-            You're a Founding Member!
+            You're a Forge Labs Pro Member!
           </h2>
           <p className="text-sm text-slate-400 mb-8">
             All premium labs are unlocked. Thank you for your support.
@@ -134,7 +134,7 @@ export default function UpgradeScreen() {
             <ArrowLeft size={20} className="text-slate-400" />
           </button>
           <h1 className="text-sm font-semibold text-white">
-            Founding Member Access
+            Forge Labs Pro
           </h1>
         </div>
       </div>
@@ -142,11 +142,11 @@ export default function UpgradeScreen() {
       <div className="max-w-lg mx-auto p-4 pb-12">
         <div className="text-center mb-8 pt-4">
           <h2 className="text-2xl font-bold text-white mb-2">
-            Become a Founding Member
+            Join Forge Labs Pro
           </h2>
           <p className="text-sm text-slate-400 leading-relaxed max-w-xs mx-auto">
-            Get lifetime access to all premium networking simulations. One
-            payment, no subscriptions, no recurring charges.
+            Unlock all premium networking simulations with a monthly or yearly
+            subscription — including new AI-era labs as they're released.
           </p>
         </div>
 
@@ -169,10 +169,10 @@ export default function UpgradeScreen() {
 
         <div className="bg-slate-800 border-2 border-emerald-500 rounded-xl p-6 text-center mb-6 relative">
           <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full bg-emerald-500 text-[9px] font-bold text-white whitespace-nowrap">
-            Founding Member — Limited Time
+            Forge Labs Pro
           </div>
-          <div className="text-4xl font-bold text-white mt-2">$14.99</div>
-          <div className="text-xs text-emerald-300 mt-1">one-time purchase</div>
+          <div className="text-4xl font-bold text-white mt-2">Full Access</div>
+          <div className="text-xs text-emerald-300 mt-1">Monthly & yearly plans · cancel anytime</div>
         </div>
 
         {errorMsg && (
@@ -190,11 +190,11 @@ export default function UpgradeScreen() {
               Processing...
             </>
           ) : (
-            "Get Founders Pack — $14.99"
+            "Subscribe to Forge Labs Pro"
           )}
         </button>
         <p className="text-[10px] text-slate-500 text-center mb-4">
-          Secured by Google Play. Cancel anytime during processing.
+          Secured by Google Play. Manage or cancel anytime in your Google Play subscriptions.
         </p>
 
         <button
