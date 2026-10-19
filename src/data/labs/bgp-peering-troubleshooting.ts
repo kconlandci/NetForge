@@ -3,22 +3,23 @@ import type { LabManifest } from "../../types/manifest";
 const lab: LabManifest = {
   schemaVersion: "1.1",
   id: "bgp-peering-troubleshooting",
-  version: 1,
-  title: "Debug BGP Peer Establishment",
+  version: 2,
+  title: "The AI's BGP Policy Doesn't Exist",
 
   tier: "intermediate",
   track: "routing-switching",
   difficulty: "moderate",
   accessLevel: "premium",
-  tags: ["bgp", "peering", "ebgp", "ibgp", "troubleshooting"],
+  tags: ["bgp", "peering", "route-map", "ai-review", "troubleshooting"],
 
   description:
-    "Debug BGP peering failures by investigating AS number mismatches, update-source issues, TTL problems, and authentication errors in eBGP and iBGP sessions.",
+    "An AI assistant drafted the BGP policy for a new peer — route-maps, communities, and AS-path prepending — and reported it ready to deploy. Validate the draft against the design document and live router output, and catch the community that doesn't exist and the prepend of the wrong AS.",
   estimatedMinutes: 15,
   learningObjectives: [
-    "Diagnose BGP peer establishment failures using show and debug commands",
-    "Understand eBGP vs iBGP peering requirements",
-    "Resolve update-source, multihop TTL, and AS number configuration issues",
+    "Validate AI-generated BGP policy against ground truth (design documents and live show output) before deploying",
+    "Detect hallucinated configuration references — communities, route-maps, and lists the draft assumes but never defines",
+    "Verify AS-path prepending uses the local AS, and understand why prepending a neighbor's AS breaks the path",
+    "Recognize when an AI troubleshooting summary contradicts the device evidence it claims to summarize",
   ],
   sortOrder: 212,
 
@@ -29,91 +30,92 @@ const lab: LabManifest = {
   scenarios: [
     {
       type: "investigate-decide",
-      id: "as-number-mismatch",
-      title: "BGP Peer Stuck in Active State",
+      id: "ai-bgp-community-prepend",
+      title: "The Community That Doesn't Exist",
       objective:
-        "Router1 (AS 65001) cannot establish an eBGP session with Router2 (AS 65002). The BGP state is stuck in Active. Investigate the BGP configuration.",
+        "Your team asked an AI assistant to draft the BGP policy for a new eBGP peer on the backup transit link. The design requires inbound routes to be tagged with community 65001:100 (the local-pref marker used by the traffic-engineering playbook) and the local AS prepended twice outbound to make this link the backup. The AI reports the policy 'complete and validated.' Review the draft against the design and the router's current state before approving deployment.",
       investigationData: [
         {
-          id: "show-bgp-summary-r1",
-          label: "show ip bgp summary (Router1)",
+          id: "ai-draft-policy",
+          label: "AI Assistant — Generated Policy Draft",
           content:
-            "BGP router identifier 1.1.1.1, local AS number 65001\nBGP table version is 1, main routing table version 1\n\nNeighbor        V    AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd\n10.0.12.2       4 65002       0       0        0    0    0 never    Active",
+            "ip community-list standard TE-TAG permit 65001:100\n!\nroute-map PEER-IN permit 10\n match community TE-TAG\n set local-preference 150\n!\nroute-map PEER-OUT permit 10\n set community 65010:100\n set as-path prepend 65002 65002\n!\nrouter bgp 65001\n neighbor 203.0.113.2 remote-as 65002\n neighbor 203.0.113.2 route-map PEER-IN in\n neighbor 203.0.113.2 route-map PEER-OUT out\n\nAI summary: 'Tags inbound routes with community 65001:100 per the design and prepends your AS twice outbound so the link acts as backup. Ready to deploy.'",
           isCritical: true,
         },
         {
-          id: "show-bgp-summary-r2",
-          label: "show ip bgp summary (Router2)",
+          id: "design-doc",
+          label: "Design Document — BGP Traffic Engineering Standards",
           content:
-            "BGP router identifier 2.2.2.2, local AS number 65002\nBGP table version is 1, main routing table version 1\n\nNeighbor        V    AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd\n10.0.12.1       4 65003       0       0        0    0    0 never    Active",
-          isCritical: true,
+            "Local AS: 65001. Peer AS (backup transit provider): 65002.\n\nCommunity plan (only these values are in use):\n  65001:100  = TE-TAG: mark for local-pref 150 handling\n  65001:200  = CUSTOMER-ROUTE\n  65001:300  = BACKUP-ONLY\n\nNo other 65001:xxx communities are defined. Communities in the\nform 65010:xxx do not exist in this network's plan.\n\nBackup-link requirement: prepend the LOCAL AS (65001) twice on\noutbound advertisements so this path is less preferred.",
         },
         {
-          id: "show-run-bgp-r2",
-          label: "show run | section bgp (Router2)",
+          id: "show-bgp-peer",
+          label: "show ip bgp summary / show run | section bgp (R1, current)",
           content:
-            "router bgp 65002\n bgp router-id 2.2.2.2\n neighbor 10.0.12.1 remote-as 65003\n network 10.2.0.0 mask 255.255.0.0",
+            "BGP router identifier 1.1.1.1, local AS number 65001\n\nNeighbor        V    AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd\n203.0.113.2     4 65002       0       0        0    0    0 never    Idle\n\nrouter bgp 65001\n bgp router-id 1.1.1.1\n neighbor 203.0.113.2 remote-as 65002\n (no route-maps applied yet — policy not deployed)",
+          isCritical: true,
         },
       ],
       actions: [
         {
-          id: "fix-remote-as-r2",
-          label: "Change Router2's remote-as for 10.0.12.1 from 65003 to 65001",
+          id: "deploy-as-written",
+          label: "Deploy the AI's policy as written — the summary confirms it matches the design",
+          color: "red",
+        },
+        {
+          id: "send-back-community-prepend",
+          label: "Send it back: outbound community must be 65001:100 (65010:100 does not exist in the plan) and the prepend must use the local AS 65001, not 65002",
           color: "green",
         },
         {
-          id: "fix-remote-as-r1",
-          label: "Change Router1's local AS from 65001 to 65003",
-          color: "red",
+          id: "deploy-remove-prepend",
+          label: "Deploy, but remove the AS-path prepend entirely to keep the config simple",
+          color: "yellow",
         },
         {
-          id: "clear-bgp",
-          label: "Clear BGP sessions on both routers",
+          id: "renumber-design",
+          label: "Change the design standard to community 65010:100 so the AI's draft becomes correct",
           color: "orange",
         },
-        {
-          id: "add-route-map",
-          label: "Add a route-map to fix the peering",
-          color: "red",
-        },
       ],
-      correctActionId: "fix-remote-as-r2",
+      correctActionId: "send-back-community-prepend",
       rationales: [
         {
           id: "r1",
-          text: "Router2 has 'neighbor 10.0.12.1 remote-as 65003' but Router1 is in AS 65001. The remote-as must match the neighbor's actual AS number for BGP to establish.",
+          text: "Two of the draft's values are invented. The outbound route-map sets community 65010:100 — a transposed-digit value that does not exist in the community plan, so downstream policy that keys off 65001:100 will never match. And 'set as-path prepend 65002 65002' prepends the PEER's AS, not the local AS: neighbors receiving that path see their own AS in it and discard the route as a loop. The summary claimed both were per design; the draft itself disagrees.",
         },
         {
           id: "r2",
-          text: "Changing Router1's AS number would disrupt all its existing BGP sessions and is the wrong fix. The typo is in Router2's configuration.",
+          text: "Deploying as written means the backup link advertises paths the peer rejects outright, and inbound tagging silently diverges from the traffic-engineering playbook. The failure mode is a backup link that carries nothing when the primary fails — discovered during an outage.",
         },
         {
           id: "r3",
-          text: "Clearing BGP sessions does not fix configuration errors. The session will remain in Active state until the AS number mismatch is corrected.",
+          text: "Removing the prepend avoids the wrong-AS error but abandons the design requirement: without prepending, the backup link is equally preferred and will carry production traffic it was not sized for. The fix is to correct the values, not delete the mechanism.",
         },
       ],
       correctRationaleId: "r1",
       feedback: {
         perfect:
-          "Correct! Router2 has the wrong remote-as configured. Changing it from 65003 to 65001 allows the BGP OPEN messages to match and the peering to establish.",
+          "Correct. You checked the draft against the design instead of trusting the summary, and caught both inventions: a community value that doesn't exist in the plan (65010:100) and a prepend of the peer's AS that would make the peer reject the routes as loops. Generated BGP policy is only as good as its ground-truth check.",
         partial:
-          "You identified a BGP configuration issue but check which router has the error. Compare the remote-as values against the actual AS numbers.",
+          "You hesitated to deploy, which is right, but identify the exact defects: the outbound community is 65010:100 (not in the plan) and the prepend uses AS 65002 — the neighbor's own AS — instead of local AS 65001. Both must be corrected, not worked around.",
         wrong:
-          "BGP requires the remote-as in the neighbor command to match the peer's actual AS number. Compare show bgp summary outputs to find the mismatch.",
+          "The summary lied by transcription. The draft sets community 65010:100, which does not exist in the community plan, and prepends 65002 — the peer's AS — which makes the peer treat the path as a loop and drop it. Always diff generated policy against the design document and the live router state before deploying.",
       },
     },
     {
       type: "investigate-decide",
-      id: "ibgp-update-source",
-      title: "iBGP Peer Using Wrong Source Address",
+      id: "ai-bgp-ibgp-source",
+      title: "The AI's iBGP Config Peers on Interfaces That Flap",
       objective:
-        "An iBGP session between Router1 and Router3 (both AS 65001) keeps dropping. The session uses physical interface IPs, but the route to the peer's IP sometimes disappears during link flaps.",
+        "The same assistant generated the configuration for a new iBGP session between Router1 and Router3 (both AS 65001). Its summary calls the config 'standard iBGP peering.' The routers have redundant paths via their loopbacks, but the generated neighbor statements use physical interface addresses. Decide whether this config should be deployed.",
       investigationData: [
         {
-          id: "show-bgp-r1",
-          label: "show ip bgp neighbors 10.0.13.2 (Router1)",
+          id: "ai-ibgp-config",
+          label: "AI Assistant — Generated iBGP Configuration",
           content:
-            "BGP neighbor is 10.0.13.2, remote AS 65001, internal link\n  BGP state = Idle\n  Last read 00:05:32, last write 00:05:32\n  TCP connection using address 10.0.13.1 as source\n  External BGP neighbor not directly connected.",
+            "Router1:\nrouter bgp 65001\n neighbor 10.0.13.2 remote-as 65001\n neighbor 10.0.13.2 next-hop-self\n\nRouter3:\nrouter bgp 65001\n neighbor 10.0.13.1 remote-as 65001\n neighbor 10.0.13.1 next-hop-self\n\nAI summary: 'Standard iBGP peering between R1 and R3 using their\ninterconnect addresses. No additional configuration required.'",
+          isCritical: true,
         },
         {
           id: "show-loopback",
@@ -123,140 +125,139 @@ const lab: LabManifest = {
           isCritical: true,
         },
         {
-          id: "show-run-bgp-r1",
-          label: "show run | section bgp (Router1)",
+          id: "show-bgp-r1",
+          label: "show ip bgp neighbors 10.0.13.2 (Router1) — existing session behavior",
           content:
-            "router bgp 65001\n bgp router-id 1.1.1.1\n neighbor 10.0.13.2 remote-as 65001\n neighbor 10.0.13.2 next-hop-self",
-          isCritical: true,
+            "BGP neighbor is 10.0.13.2, remote AS 65001, internal link\n  BGP state = Idle\n  Last read 00:05:32, last write 00:05:32\n  TCP connection using address 10.0.13.1 as source\n  External BGP neighbor not directly connected.\n\nNote: the existing physical-interface peering drops whenever the\ndirect link flaps, even though an alternate path exists via the\nloopbacks.",
         },
       ],
       actions: [
         {
-          id: "peer-loopbacks",
-          label: "Peer using loopback IPs with update-source Loopback0",
+          id: "deploy-interface-peering",
+          label: "Deploy the AI's config as written — it matches the interconnect addresses",
+          color: "red",
+        },
+        {
+          id: "fix-loopback-peering",
+          label: "Send it back: peer on the loopback addresses with 'update-source Loopback0' on both routers",
           color: "green",
         },
         {
           id: "add-keepalive",
-          label: "Reduce BGP keepalive timers to detect failures faster",
+          label: "Deploy, and reduce BGP keepalive timers so the session recovers faster after flaps",
           color: "yellow",
         },
         {
-          id: "add-static-route",
-          label: "Add static routes to prevent peer IP from disappearing",
+          id: "change-to-ebgp",
+          label: "Convert the session to eBGP between different AS numbers to avoid the issue",
           color: "orange",
         },
-        {
-          id: "change-to-ebgp",
-          label: "Change to eBGP peering between different AS numbers",
-          color: "red",
-        },
       ],
-      correctActionId: "peer-loopbacks",
+      correctActionId: "fix-loopback-peering",
       rationales: [
         {
           id: "r1",
-          text: "iBGP best practice is to peer using loopback addresses with 'neighbor x.x.x.x update-source Loopback0'. Loopbacks do not go down during physical link flaps if alternate paths exist.",
+          text: "iBGP best practice is to peer using loopback addresses with 'neighbor <loopback> update-source Loopback0'. Loopbacks stay reachable over any surviving path, so the session survives a single link flap. The AI reproduced the addressing it saw in the topology without applying the standard pattern — plausible, deployable, and fragile in exactly the way the existing session already demonstrates.",
         },
         {
           id: "r2",
-          text: "Faster keepalives detect failures sooner but do not prevent the session from dropping. The root cause is peering on a physical interface that can flap.",
+          text: "Faster keepalives detect failures sooner but do not prevent the session from dropping. The root cause is peering on a physical interface that can flap, which the generated config repeats.",
         },
         {
           id: "r3",
-          text: "Static routes are fragile and do not scale. Using loopback peering with an IGP providing reachability is the standard approach.",
+          text: "Splitting one AS into two to dodge a peering-pattern problem would redesign the network's routing architecture. The fix is two lines per router, not a new design.",
         },
       ],
       correctRationaleId: "r1",
       feedback: {
         perfect:
-          "Correct! Peering iBGP over loopbacks with 'update-source Loopback0' provides resilience against physical link flaps as long as an alternate path exists.",
+          "Correct! The AI's config would work on day one and fail on the first link flap — the exact behavior the existing session already shows. iBGP peers on loopbacks with 'update-source Loopback0' so any surviving path keeps the session up.",
         partial:
-          "Your approach helps but does not address the fundamental issue. iBGP should always peer over loopback interfaces for stability.",
+          "You spotted fragility, but timers and workarounds don't fix it. The generated config peers on physical interface IPs; the standard pattern is loopback peering with update-source, which the AI omitted.",
         wrong:
-          "iBGP peering should use loopback interfaces, not physical interfaces. Configure 'neighbor <loopback-ip> update-source Loopback0' on both sides.",
+          "Generated configuration tends to mirror the most literal reading of a topology — interface addresses — and skip the operational pattern behind it. iBGP should peer over loopbacks with 'update-source Loopback0'. Deploying the draft repeats a failure the network is already having.",
       },
     },
     {
       type: "investigate-decide",
-      id: "ebgp-multihop",
-      title: "eBGP Multihop TTL Issue",
+      id: "ai-bgp-multihop-claim",
+      title: "'Directly Connected,' According to the Diagram",
       objective:
-        "An eBGP peering between Router1 (AS 65001) and an ISP router (AS 65100) uses loopback addresses but the session stays in Active state. The ISP router is 2 hops away.",
+        "For an eBGP session to an ISP router (AS 65100) peered on loopbacks, the AI generated the neighbor configuration with no ebgp-multihop statement, explaining that 'the peer is directly connected per the topology diagram, so the default TTL is sufficient.' The session sits in Active. Verify the AI's claim against the device evidence.",
       investigationData: [
         {
-          id: "show-bgp-r1",
+          id: "show-bgp-isp",
           label: "show ip bgp neighbors 100.100.100.1 (Router1)",
           content:
             "BGP neighbor is 100.100.100.1, remote AS 65100, external link\n  BGP state = Active\n  Last read 00:00:00, last write 00:00:00\n  External BGP neighbor may be up to 1 hop away.",
           isCritical: true,
         },
         {
-          id: "traceroute",
+          id: "traceroute-isp",
           label: "traceroute 100.100.100.1 source 1.1.1.1",
           content:
             "Type escape sequence to abort.\nTracing the route to 100.100.100.1\n  1 10.0.12.2  4 msec\n  2 100.100.100.1  8 msec",
           isCritical: true,
         },
         {
-          id: "show-run-bgp",
-          label: "show run | section bgp (Router1)",
+          id: "show-run-isp",
+          label: "show run | section bgp (Router1) — AI-generated neighbor block",
           content:
-            "router bgp 65001\n bgp router-id 1.1.1.1\n neighbor 100.100.100.1 remote-as 65100\n neighbor 100.100.100.1 update-source Loopback0",
+            "router bgp 65001\n bgp router-id 1.1.1.1\n neighbor 100.100.100.1 remote-as 65100\n neighbor 100.100.100.1 update-source Loopback0\n (no ebgp-multihop — AI note: 'not required, peer is directly connected')",
         },
       ],
       actions: [
         {
           id: "add-ebgp-multihop",
-          label: "Add 'neighbor 100.100.100.1 ebgp-multihop 2' on Router1",
+          label: "Correct the config: add 'neighbor 100.100.100.1 ebgp-multihop 2' — the traceroute proves the peer is 2 hops away",
           color: "green",
         },
         {
+          id: "trust-diagram",
+          label: "Trust the AI's reading of the diagram and troubleshoot cabling on the 'direct' link instead",
+          color: "red",
+        },
+        {
           id: "peer-directly",
-          label: "Change to peer using directly connected interface IPs",
+          label: "Abandon loopback peering and peer on the directly connected interface addresses",
           color: "yellow",
         },
         {
-          id: "increase-keepalive",
-          label: "Increase BGP keepalive timer",
-          color: "red",
-        },
-        {
           id: "add-password",
-          label: "Add BGP MD5 authentication",
-          color: "red",
+          label: "Add BGP MD5 authentication, a common cause of sessions stuck in Active",
+          color: "orange",
         },
       ],
       correctActionId: "add-ebgp-multihop",
       rationales: [
         {
           id: "r1",
-          text: "eBGP defaults to TTL=1, which means the BGP packet expires before reaching a peer 2 hops away. 'ebgp-multihop 2' increases the TTL to allow the packets through.",
+          text: "The traceroute is the ground truth: two hops to 100.100.100.1. eBGP defaults to TTL=1, so the BGP packets expire at the intermediate router and the session can never leave Active. 'ebgp-multihop 2' raises the TTL to match reality. The AI reasoned from a diagram's appearance; the device output contradicts it.",
         },
         {
           id: "r2",
-          text: "Peering on directly connected interfaces avoids the TTL issue but loses the stability benefits of loopback peering, which may be required by the ISP.",
+          text: "There is no direct link to troubleshoot — the topology the AI inferred from the diagram does not exist. Chasing cabling on a phantom connection wastes the change window while the one-line fix sits unused.",
         },
         {
           id: "r3",
-          text: "Keepalive timers and authentication are unrelated to the TTL issue. The BGP OPEN packets never reach the peer because they expire in transit.",
+          text: "Peering on directly connected interfaces would avoid the TTL problem but discards loopback peering, which the ISP requires for this service. The correct response to a wrong claim in generated config is to fix the claim, not redesign around it.",
         },
       ],
       correctRationaleId: "r1",
       feedback: {
         perfect:
-          "Correct! eBGP uses TTL=1 by default. Since the ISP is 2 hops away, 'ebgp-multihop 2' (or higher) is needed for the TCP session to establish.",
+          "Correct! Two hops in the traceroute beats 'directly connected' in a summary. eBGP's default TTL of 1 expires before reaching the peer, so 'ebgp-multihop 2' is the fix — and the habit is the point: verify an AI's topological claims with device output.",
         partial:
-          "Your approach avoids the problem but may not be what the ISP requires. eBGP multihop is specifically designed for peering over non-directly-connected addresses.",
+          "You doubted the AI, but check the evidence hierarchy: the traceroute shows 2 hops, and eBGP defaults to TTL=1. That combination has exactly one standard fix — ebgp-multihop — without abandoning loopback peering.",
         wrong:
-          "eBGP defaults to TTL=1. If the peer is more than 1 hop away, you need 'neighbor x.x.x.x ebgp-multihop <n>' where n >= number of hops.",
+          "The AI's claim was checkable and wrong: the traceroute reaches the peer in 2 hops, and with eBGP's TTL=1 default the session can never establish. When generated config and device output disagree, the device output wins.",
       },
     },
   ],
   hints: [
-    "BGP 'Active' state means the router is trying to establish a TCP session but failing. Check AS numbers, reachability, and TTL settings.",
-    "iBGP should peer over loopback addresses with 'update-source Loopback0' for resilience against physical link failures.",
-    "eBGP uses TTL=1 by default. If the peer is more than 1 hop away, enable 'ebgp-multihop' with an appropriate hop count.",
+    "Diff every generated value against a ground-truth source: the design document for communities and AS numbers, live show output for topology and state. AI drafts fail by transcription — transposed digits, the peer's AS instead of yours.",
+    "Prepending the neighbor's own AS makes the neighbor discard your routes as loops. The prepend always uses your local AS.",
+    "BGP 'Active' state means TCP never established. Check the AI's assumptions in order: reachability, hop count/TTL, then AS configuration.",
   ],
 
   scoring: {
@@ -267,7 +268,7 @@ const lab: LabManifest = {
   },
 
   careerInsight:
-    "BGP is the protocol that runs the internet. Troubleshooting BGP peering is a critical skill for ISP engineers and enterprise architects managing WAN connections.",
+    "BGP policy errors announce themselves during outages, not during change windows. As AI assistants draft more routing policy, the scarce skill is verification: knowing which values must be checked against the design and the live network — communities, AS numbers, hop counts — because a generator produces wrong values with the same fluency as right ones.",
   toolRelevance: [
     "Cisco IOS CLI",
     "Looking glass servers",
@@ -276,7 +277,7 @@ const lab: LabManifest = {
   ],
 
   createdAt: "2026-03-28",
-  updatedAt: "2026-03-28",
+  updatedAt: "2026-10-18",
 };
 
 export default lab;
