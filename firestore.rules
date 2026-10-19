@@ -1,0 +1,27 @@
+rules_version = '2';
+
+// NetForge — Firestore Security Rules
+// Carried over unchanged from CloudForge's rules (themselves from
+// ThreatForge's Phase 1): the data
+// paths are identical (users/{uid} progress doc + users/{uid}/events
+// analytics subcollection), so no NetForge-specific changes.
+// Each anonymous user may only read/write their own document and
+// their own analytics events. No cross-user access, no public reads.
+//
+// Deploy with:  firebase deploy --only firestore:rules
+// (requires the Firebase CLI authenticated to NetForge's project,
+// or paste into Firebase Console > Firestore Database > Rules)
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Progress doc: users/{firebaseAuthUid}
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Analytics events subcollection: users/{uid}/events/{eventId}
+    match /users/{uid}/events/{eventId} {
+      allow read, create: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

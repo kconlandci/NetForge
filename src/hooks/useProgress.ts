@@ -8,6 +8,11 @@ import { App as CapApp } from "@capacitor/app";
 import { Preferences } from "@capacitor/preferences";
 import { z } from "zod/v4";
 import { getLocalDateString } from "../utils/localDate";
+import {
+  queueCloudPush,
+  mergeProgress,
+  CLOUD_PULL_EVENT,
+} from "../services/sync";
 
 const ScenarioResultSchema = z.object({
   scenarioIndex: z.number().int().min(0),
@@ -187,11 +192,36 @@ export function useProgress(userId?: string | null) {
     if (!localData) {
       recoverFromPreferences().then((recovered) => {
         if (recovered) {
+          // Reject recovered progress if it belongs to a different user
+          if (userId && recovered.userId && recovered.userId !== userId) {
+            console.warn(
+              `[NetForge] Recovered progress belongs to UID ${recovered.userId}, active UID is ${userId}. Discarding stale backup.`
+            );
+            return;
+          }
           saveProgress(recovered);
           setProgress(recovered);
         }
       });
     }
+  }, [userId]);
+
+  // Merge cloud progress when AuthContext pulls it (fired once auth is ready).
+  // Merge is max()/union-based, so applying it twice is harmless.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const remote = (e as CustomEvent<NetForgeProgress>).detail;
+      if (!remote) return;
+      setProgress((prev) => {
+        const merged = mergeProgress(prev, remote);
+        saveProgress(merged);
+        mirrorToPreferences(merged);
+        queueCloudPush(merged);
+        return merged;
+      });
+    };
+    window.addEventListener(CLOUD_PULL_EVENT, handler);
+    return () => window.removeEventListener(CLOUD_PULL_EVENT, handler);
   }, []);
 
   useEffect(() => {
@@ -199,6 +229,7 @@ export function useProgress(userId?: string | null) {
       const current = loadProgress();
       saveProgress(current);
       mirrorToPreferences(current);
+      queueCloudPush(current);
     });
 
     return () => {
@@ -212,7 +243,8 @@ export function useProgress(userId?: string | null) {
         const next = { ...prev, labs: { ...prev.labs } };
         const today = getToday();
 
-        if (userId && !next.userId) {
+        // Always keep userId in sync with the active auth UID
+        if (userId) {
           next.userId = userId;
         }
 
@@ -249,6 +281,7 @@ export function useProgress(userId?: string | null) {
 
         saveProgress(next);
         mirrorToPreferences(next);
+        queueCloudPush(next);
         return next;
       });
     },
@@ -277,6 +310,7 @@ export function useProgress(userId?: string | null) {
     const fresh = createDefaultProgress();
     saveProgress(fresh);
     mirrorToPreferences(fresh);
+    queueCloudPush(fresh);
     setProgress(fresh);
   }, []);
 

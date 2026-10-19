@@ -4,6 +4,7 @@
 // ============================================================
 
 import { getLocalDateString } from "../utils/localDate";
+import { mirrorEventToCloud } from "../services/sync";
 
 const ANALYTICS_KEY = "netforge_analytics";
 
@@ -84,6 +85,8 @@ function pushEvent(event: AnalyticsEvent) {
   } catch (err) {
     console.error("[NetForge Analytics] Failed to save event:", err);
   }
+  // Mirror to cloud (fire-and-forget; no-op until auth is ready)
+  mirrorEventToCloud(event as unknown as Record<string, unknown>);
 }
 
 // --- Public API ---
