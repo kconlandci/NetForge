@@ -1,29 +1,44 @@
+// ============================================================
+// NetForge — Legal Text
+// Privacy Policy, Terms of Service, Disclaimer
+// Wiring pass (2026-10-19): privacy text updated for Phase 1
+// cloud sync, following CloudForge's post-sync legal text —
+// progress now backs up to Firebase under an anonymous ID,
+// and purchases run through the shared Forge Labs Pro
+// entitlement (the old one-time "Founders Pack" is retired).
+// ============================================================
+
 export const privacyPolicy = `NetForge Privacy Policy
-Last updated: March 2026
+Last updated: October 2026
 
 1. Data Storage
-NetForge stores progress data (completed labs, scores, streaks, XP) locally on your device. No progress data is transmitted to external servers.
+NetForge stores progress data (completed labs, scores, streaks, XP) locally on your device and backs it up to Firebase (Google Cloud) so it can be restored if your device's local storage is cleared. Your progress backup is tied only to your anonymous user ID (see Section 2) — it contains your lab progress, scores, streaks, and XP, and no personal identity information.
 
 2. Anonymous Authentication
-NetForge uses Firebase Anonymous Authentication to generate a random, anonymous user identifier (UID). This UID contains no personal information such as your name, email address, or phone number. It is used solely to associate your device with purchase entitlements. Firebase may collect basic technical data (device type, OS version, IP address) as part of its standard operation. See Google's privacy policy for details on Firebase data handling.
+We use Firebase Anonymous Authentication to generate a random user ID. No personal information (name, email, phone number) is collected or stored. This anonymous ID is not linked to your real-world identity. Because the anonymous ID is specific to your app installation, reinstalling the app creates a new ID and previously backed-up progress cannot be restored after a reinstall.
 
-3. Purchase Processing
-If you purchase the Founders Pack, the transaction is processed by RevenueCat, a third-party subscription management service. RevenueCat receives your anonymous UID and purchase receipt from the App Store or Google Play to verify your entitlement. RevenueCat does not receive your name, email, or payment details — those are handled directly by Apple or Google. See RevenueCat's privacy policy for details on their data practices.
+3. Purchase Data
+If you subscribe to Forge Labs Pro (via a monthly subscription or yearly subscription), the transaction is processed by Google Play. RevenueCat, a third-party subscription management service, receives your anonymous user ID and purchase receipt from Google Play to verify your entitlement. RevenueCat does not receive your name, email, or payment details — those are handled directly by Google. We receive only your entitlement status through RevenueCat — never your payment details.
 
-4. Usage Analytics
-NetForge collects anonymous usage analytics (labs started, labs completed, hints used, session duration) stored locally on your device. These analytics are not transmitted to any external server and are used solely to improve your in-app experience such as lab recommendations and progress tracking.
+4. Analytics
+Usage analytics (labs started, completed, session duration) are stored locally on your device for your personal review in the Usage Stats screen. The same events are also sent to Firebase under your anonymous user ID so we can understand how the app is used. They are not linked to your identity and are never sold.
 
-5. Children's Privacy
+5. Third-Party Services
+- Firebase: Anonymous authentication, cloud progress backup, and usage analytics
+- RevenueCat: Subscription management and purchase verification
+- Google Play: Payment processing
+
+6. Data Deletion
+You can reset all progress from Settings > Reset Progress. This clears the data on your device and overwrites your cloud progress backup with a fresh start. Uninstalling the app removes all locally stored data.
+
+7. Children's Privacy
 NetForge is designed for users aged 18 and older. We do not knowingly collect data from children under 18.
 
-6. Changes to This Policy
-This privacy policy may be updated to reflect changes in the app's functionality. Continued use of the app after policy changes constitutes acceptance.
-
-7. Contact
-Questions about this privacy policy can be directed to: netforge.app@gmail.com`;
+8. Contact
+Questions about this privacy policy can be directed to: conlan.dci@gmail.com`;
 
 export const termsOfService = `NetForge Terms of Service
-Last updated: March 2026
+Last updated: October 2026
 
 By using NetForge, you agree to the following terms:
 
@@ -36,20 +51,23 @@ NetForge is not affiliated with, endorsed by, or associated with Cisco, CompTIA,
 3. No Guarantees
 NetForge does not guarantee job placement, career advancement, salary outcomes, or networking competence. Performance in simulated scenarios does not constitute professional qualification.
 
-4. Ethical Use
+4. Purchases
+Premium labs are unlocked with a Forge Labs Pro subscription, offered in monthly and yearly plans and processed through Google Play. Current plan prices are shown in the app before you purchase. Your subscription renews automatically unless cancelled before the end of the current billing period. You can manage or cancel your subscription at any time in your Google Play account settings; you keep premium access until the end of the period already paid for. Refund requests should be directed to Google Play support per their refund policy.
+
+5. Ethical Use
 You agree not to apply techniques or concepts from NetForge scenarios to real systems, networks, or organizations without explicit authorization. NetForge scenarios are fictional and simplified for educational purposes.
 
-5. Content Accuracy
+6. Content Accuracy
 Scenarios are designed to teach judgment principles and may be simplified from real-world complexity. Content is provided "as is" without warranty of accuracy, completeness, or fitness for any particular purpose.
 
-6. Age Requirement
+7. Age Requirement
 You must be 18 years of age or older to use NetForge.
 
-7. Modifications
+8. Modifications
 NetForge reserves the right to modify these terms at any time. Continued use after changes constitutes acceptance.
 
-8. Contact
-Questions about these terms can be directed to: netforge.app@gmail.com`;
+9. Contact
+Questions about these terms can be directed to: conlan.dci@gmail.com`;
 
 export const disclaimer = `NetForge Disclaimer
 
