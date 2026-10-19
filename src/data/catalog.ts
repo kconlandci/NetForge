@@ -67,7 +67,7 @@ import wirelessIdsResponse from "./labs/wireless-ids-response";
 import dot1xWirelessAuth from "./labs/802.1x-wireless-auth";
 import highDensityWifiDesign from "./labs/high-density-wifi-design";
 
-// --- Network Security (15) ---
+// --- Network Security (16) ---
 import firewallRuleCreation from "./labs/firewall-rule-creation";
 import aclDesignBasics from "./labs/acl-design-basics";
 import vpnTunnelConfiguration from "./labs/vpn-tunnel-configuration";
@@ -83,6 +83,7 @@ import wafRuleTuning from "./labs/waf-rule-tuning";
 import zeroTrustNetworkDesign from "./labs/zero-trust-network-design";
 import ddosMitigationResponse from "./labs/ddos-mitigation-response";
 import siemNetworkCorrelation from "./labs/siem-network-correlation";
+import aiFirewallChangeReview from "./labs/ai-firewall-change-review";
 
 // --- Services & Infrastructure (15) ---
 import dhcpServerConfiguration from "./labs/dhcp-server-configuration";
@@ -193,6 +194,7 @@ export const labCatalog: LabManifest[] = [
   zeroTrustNetworkDesign,
   ddosMitigationResponse,
   siemNetworkCorrelation,
+  aiFirewallChangeReview,
   // Services & Infrastructure
   dhcpServerConfiguration,
   dnsZoneManagement,

@@ -23,7 +23,7 @@ export const learningPaths: LearningPath[] = [
     targetAudience: "Career changers, helpdesk moving to networking",
     icon: "Router",
     labIds: [
-      // --- FREE (14) ---
+      // --- FREE (15) ---
       "osi-model-troubleshooting",
       "tcp-vs-udp-selection",
       "ip-addressing-basics",
@@ -38,10 +38,10 @@ export const learningPaths: LearningPath[] = [
       "mac-address-filtering",
       "broadcast-domain-design",
       "tcp-handshake-diagnosis",
-      // --- PREMIUM (6) ---
+      "vlsm-subnetting",
+      // --- PREMIUM (5) ---
       "encapsulation-troubleshooting",
       "nat-configuration-review",
-      "vlsm-subnetting",
       "qos-marking-classification",
       "multicast-routing-decisions",
       "network-baseline-analysis",
@@ -89,9 +89,8 @@ export const learningPaths: LearningPath[] = [
     targetAudience: "Wireless engineers, network admins managing Wi-Fi",
     icon: "Wifi",
     labIds: [
-      // --- FREE (10) ---
+      // --- FREE (9) ---
       "wifi-standard-selection",
-      "wireless-channel-planning",
       "ap-placement-strategy",
       "wpa3-security-config",
       "wireless-interference-diagnosis",
@@ -100,7 +99,8 @@ export const learningPaths: LearningPath[] = [
       "captive-portal-setup",
       "wireless-bridge-config",
       "mesh-network-troubleshooting",
-      // --- PREMIUM (5) ---
+      // --- PREMIUM (6) ---
+      "wireless-channel-planning",
       "controller-based-wifi",
       "spectrum-analysis",
       "wireless-ids-response",
@@ -128,12 +128,13 @@ export const learningPaths: LearningPath[] = [
       "ssl-tls-inspection",
       "network-segmentation-security",
       "radius-authentication-debug",
-      // --- PREMIUM (5) ---
+      // --- PREMIUM (6) ---
       "ipsec-tunnel-troubleshooting",
       "waf-rule-tuning",
       "zero-trust-network-design",
       "ddos-mitigation-response",
       "siem-network-correlation",
+      "ai-firewall-change-review",
     ],
   },
   {
