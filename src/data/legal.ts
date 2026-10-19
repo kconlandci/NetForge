@@ -5,7 +5,7 @@
 // cloud sync, following CloudForge's post-sync legal text —
 // progress now backs up to Firebase under an anonymous ID,
 // and purchases run through the shared Forge Labs Pro
-// entitlement (the old one-time "Founders Pack" is retired).
+// entitlement (the old one-time purchase model is retired).
 // ============================================================
 
 export const privacyPolicy = `NetForge Privacy Policy

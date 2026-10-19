@@ -80,14 +80,14 @@ export default function LabScreen() {
           <Lock size={32} className="text-slate-500 mx-auto mb-3" />
           <p className="text-sm font-medium text-white mb-1">Premium Lab</p>
           <p className="text-xs text-slate-400 mb-4">
-            This simulation requires Founders Pack access.
+            This simulation requires Forge Labs Pro access.
           </p>
           <div className="flex gap-3 justify-center">
             <button
               onClick={() => navigate("/upgrade")}
               className="px-4 py-2 rounded-xl bg-emerald-500 text-white font-medium text-sm min-h-[44px]"
             >
-              View Founders Pack
+              View Forge Labs Pro
             </button>
             <button
               onClick={() => navigate("/")}
